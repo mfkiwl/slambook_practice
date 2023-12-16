@@ -13,6 +13,7 @@ add_executable(geometry use_geometry.cpp)
 add_executable(transform coordinate_transfrom.cpp)
 add_executable(visualize_trajectory visualize_trajectory.cpp)
 add_executable(visualize_geometry visualize_geometry.cpp)
+add_executable(ch2_exercise ch2_exercise.cpp)
 
 target_link_libraries(visualize_trajectory ${Pangolin_LIBRARIES} )
 target_link_libraries(visualize_geometry ${Pangolin_LIBRARIES} )
