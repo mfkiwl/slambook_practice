@@ -37,4 +37,49 @@ int main(int argc, char *argv[]) {
   cout << "SO(3) identity element is Identity matrix" << endl;
   // inverse element
   cout << "det(R1) = 1 , so is a invertible matrix" << endl;
+
+  cout << "===========================================================" << endl;
+  cout << "verfy SE3 " << endl;
+  // closure
+  Vector3d translation_vector_1(-5, 1, 4);
+  // use R1
+  Matrix4d T1 = Matrix4d::Identity();
+  T1.block<3, 3>(0, 0) = R1;
+  T1.block<3, 1>(0, 3) = translation_vector_1;
+  //   cout << "T1 = \n " << T1 << endl;
+  Vector3d translation_vector_2(7, 2, -1);
+  // use R2
+  Matrix4d T2 = Matrix4d::Identity();
+  T2.block<3, 3>(0, 0) = R2;
+  T2.block<3, 1>(0, 3) = translation_vector_2;
+  //   cout << "T2 = \n " << T2 << endl;
+  // T1 * T2 needs to be SE(3), the upper left 3 x 3 matrix is SO(3) , and the
+  // upper right 3 x 1 matrix is a vector and bottom left is 0 , bottom right
+  // is 1.
+  Matrix4d T1_2 = T1 * T2;
+  Matrix3d T12_R = T1_2.block<3, 3>(0, 0);
+  cout << "T12_R*T12_R^T = \n " << T12_R * T12_R.transpose() << endl;
+  cout << "det(T12_R) = " << (R1 * R2).determinant() << endl;
+  cout << "T1_2 translation vector " << T1_2.block<3, 1>(0, 3).transpose()
+       << endl;
+  cout << "T1_2 bottom row " << T1_2.block<1, 4>(3, 0) << endl;
+
+  // associativity
+  cout << "Matrix multiplication is associative " << endl;
+  // Identity element
+  cout << "SE(3) identity element is a 4 by 4 Identity matrix"
+          "vector "
+       << endl;
+  // // inverse element
+  cout << "det(T1_2) = " << T1_2.determinant() << " , so is a invertible matrix"
+       << endl;
+
+  cout << "===========================================================" << endl;
+  cout << "verfy Sim3" << endl;
+  cout << "the upper right 3 by 3 matrix is a scalar with two rotation matrix "
+       << endl;
+  cout << "multiplication, the upper right 3 by 1 vector is rotation matrix "
+          "with t2 plus t1 vector"
+       << endl;
+  cout << "others just same as SE(3)" << endl;
 }
