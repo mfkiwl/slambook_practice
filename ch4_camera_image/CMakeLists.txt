@@ -7,6 +7,7 @@ include_directories("/home/jeff/opensource/eigen/")
 
 find_package(OpenCV REQUIRED)
 find_package(Pangolin REQUIRED)
+find_package(Sophus REQUIRED)
 
 include_directories(${OpenCV_INCLUDE_DIRS})
 include_directories(${Pangolin_INCLUDE_DIRES})
