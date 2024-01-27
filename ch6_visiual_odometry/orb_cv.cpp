@@ -8,8 +8,9 @@ using namespace std;
 using namespace cv;
 
 int main(int argc, char *argv[]) {
-  if (argc != 3) {
-    cout << "usage : feature_extraction img1 img2" << endl;
+  if (argc != 4) {
+    cout << "usage : feature_extraction img1 img2 ratio_thresh_for_matches"
+         << endl;
     return 1;
   }
 
@@ -20,17 +21,12 @@ int main(int argc, char *argv[]) {
 
   std::vector<KeyPoint> key_point1, key_point2;
   Mat descriptors1, descriptors2;
-  Ptr<FeatureDetector> detector = ORB::create();
-  Ptr<DescriptorExtractor> descriptor = ORB::create();
-  Ptr<DescriptorMatcher> matcher =
-      DescriptorMatcher::create("BruteForce-Hamming");
+  Ptr<ORB> detector = ORB::create();
+  // Ptr<DescriptorExtractor> descriptor = ORB::create();
 
   auto t1 = chrono::steady_clock::now();
-  detector->detect(img1, key_point1);
-  detector->detect(img2, key_point2);
-
-  descriptor->compute(img1, key_point1, descriptors1);
-  descriptor->compute(img2, key_point2, descriptors2);
+  detector->detectAndCompute(img1, noArray(), key_point1, descriptors1);
+  detector->detectAndCompute(img2, noArray(), key_point2, descriptors2);
 
   auto t2 = chrono::steady_clock::now();
   auto duration = chrono::duration_cast<chrono::duration<double>>(t2 - t1);
@@ -40,30 +36,29 @@ int main(int argc, char *argv[]) {
   drawKeypoints(img1, key_point1, outimg1);
   imshow("ORB features", outimg1);
 
-  vector<DMatch> matches;
+  Ptr<FlannBasedMatcher> matcher = cv::makePtr<FlannBasedMatcher>(
+      cv::makePtr<cv::flann::LshIndexParams>(12, 20, 2));
+  vector<vector<DMatch>> knn_matches;
   t1 = chrono::steady_clock::now();
-  matcher->match(descriptors1, descriptors2, matches);
+  matcher->knnMatch(descriptors1, descriptors2, knn_matches, 2);
   t2 = chrono::steady_clock::now();
   duration = chrono::duration_cast<chrono::duration<double>>(t2 - t1);
   cout << "match features cost " << duration.count() << " seconds" << endl;
-
-  auto min_max = minmax_element(matches.begin(), matches.end(),
-                                [](const DMatch &m1, const DMatch &m2) {
-                                  return m1.distance < m2.distance;
-                                });
-  double min_dist = min_max.first->distance;
-  double max_dist = min_max.second->distance;
-
-  cout << "Max dist " << max_dist << endl;
-  cout << "Min dist " << min_dist << endl;
-
+  cout << "knn matches size " << knn_matches.size() << endl;
+  vector<DMatch> matches;
   vector<DMatch> good_matches;
-  for (int i = 0; i < descriptors1.rows; i++) {
-    if (matches[i].distance <= max(2 * min_dist, 30.0)) {
-      good_matches.push_back(matches[i]);
+  float ratio_thresh = stof(argv[3]);
+  for (size_t i = 0; i < knn_matches.size(); i++) {
+    if (knn_matches[i].size() < 2)
+      continue;
+    matches.push_back(knn_matches[i][0]);
+    if (knn_matches[i][0].distance <
+        ratio_thresh * knn_matches[i][1].distance) {
+      good_matches.push_back(knn_matches[i][0]);
     }
   }
-
+  cout << "matches size " << good_matches.size() << "/" << matches.size()
+       << endl;
   Mat img_match;
   Mat img_goodmatch;
   drawMatches(img1, key_point1, img2, key_point2, matches, img_match);
