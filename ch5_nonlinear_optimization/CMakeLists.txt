@@ -14,7 +14,6 @@ find_package(G2O REQUIRED)
 
 include_directories(${OpenCV_INCLUDE_DIRS})
 include_directories(${Pangolin_INCLUDE_DIRES})
-include_directories(${CERES_INCLUDE_DIRS})
 include_directories(${G2O_INCLUDE_DIRS})
 
 add_executable(gauss_newton gauss_newton.cpp)
